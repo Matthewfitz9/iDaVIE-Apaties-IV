@@ -1,0 +1,48 @@
+name: Apaties IV CI
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+
+jobs:
+  analyse:
+    name: Static Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Confirm plugin interface files exist
+        run: |
+          echo "Checking for plugin interface files..."
+          ls Assets/Scripts/PluginInterface/FitsReader.cs
+          ls Assets/Scripts/PluginInterface/AstTool.cs
+          ls Assets/Scripts/PluginInterface/DataAnalysis.cs
+          echo "All three plugin interface files found."
+
+      - name: Count DllImport calls
+        run: |
+          echo "=== DllImport call counts ==="
+          echo "FitsReader.cs:"
+          grep -c "DllImport" Assets/Scripts/PluginInterface/FitsReader.cs || true
+          echo "AstTool.cs:"
+          grep -c "DllImport" Assets/Scripts/PluginInterface/AstTool.cs || true
+          echo "DataAnalysis.cs:"
+          grep -c "PluginFunctionAttr" Assets/Scripts/PluginInterface/DataAnalysis.cs || true
+
+      - name: Check for Unity dependencies in plugin layer
+        run: |
+          echo "=== Checking for Unity dependencies ==="
+          echo "Files with UnityEngine imports in PluginInterface folder:"
+          grep -rl "using UnityEngine" Assets/Scripts/PluginInterface/ || echo "None found"
+          echo "Unity dependency check complete."
+
+      - name: Report complete
+        run: |
+          echo "=== Apaties IV CI skeleton complete ==="
+          echo "Date: $(date)"
+          echo "Branch: ${{ github.ref }}"
+          echo "Commit: ${{ github.sha }}"
